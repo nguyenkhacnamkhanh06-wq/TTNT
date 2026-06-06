@@ -27,8 +27,8 @@ df = pd.DataFrame(data)
 # ==========================================
 features = df[['Tam_Ly', 'Triet_Ly', 'Kinh_Doanh', 'Hoc_Thuat', 'Ky_Nang']].values
 
-# Thiết lập k=6 (1 kết quả là chính cuốn sách đó + 5 gợi ý lân cận)
-# Metric cosine đo góc giữa các vector thay vì khoảng cách hình học tuyệt đối
+# Thiết lập k=6
+
 knn_model = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=6)
 knn_model.fit(features)
 
@@ -56,18 +56,17 @@ for i in range(len(df)):
 # 3. HÀM GỢI Ý DỰA TRÊN KNN
 # ==========================================
 def KNN_Tim_Sach_Goi_Y(book_index, model, dataframe):
-    # Trả về mảng khoảng cách và index của các cuốn sách gần nhất
+    
     distances, indices = model.kneighbors([features[book_index]])
     
     danh_sach_goi_y = []
     
-    # Bỏ qua index 0 vì nó chính là cuốn sách đang xét (khoảng cách = 0)
+    
     for i in range(1, len(distances.flatten())):
         idx = indices.flatten()[i]
         dist = distances.flatten()[i]
         
-        # Khoảng cách Cosine trong sklearn: dist = 1 - similarity
-        # Điều kiện dist <= 0.4 tương đương với similarity >= 0.6 trong code cũ
+       
         if dist <= 0.4: 
             danh_sach_goi_y.append(dataframe.iloc[idx]['Ten_Sach'])
             
