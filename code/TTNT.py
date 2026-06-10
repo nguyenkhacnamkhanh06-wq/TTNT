@@ -108,58 +108,88 @@ def BFS_Goi_Y(start_index, graph, dataframe, max_depth=2):
 # 4. CHẠY THỬ NGHIỆM THỰC TẾ TRÊN CONSOLE
 # ==========================================
 if __name__ == "__main__":
-    print("="*50)
-    print("   HỆ THỐNG GỢI Ý SÁCH THÔNG MINH (k-NN ML)")
-    print("="*50)
-    
+    print("=" * 50)
+    print("   HỆ THỐNG GỢI Ý SÁCH THÔNG MINH (k-NN + BFS)")
+    print("=" * 50)
+
     danh_sach_sach = df['Ten_Sach'].tolist()
+
     print("\nDANH MỤC SÁCH HIỆN CÓ:")
     for i, sach in enumerate(danh_sach_sach):
         print(f"{i + 1:02d}. {sach}")
-        
+
     print("-" * 50)
-    
+
     book_idx_selected = -1
     sach_nguoi_dung_chon = ""
-    
+
     while True:
-        lua_chon = input("Nhập số thứ tự (1-20) hoặc tên sách bạn muốn đọc: ").strip()
-        
+        lua_chon = input(
+            "Nhập số thứ tự (1-20) hoặc tên sách bạn muốn đọc: "
+        ).strip()
+
         if lua_chon.isdigit():
             index = int(lua_chon) - 1
+
             if 0 <= index < len(danh_sach_sach):
                 book_idx_selected = index
                 sach_nguoi_dung_chon = danh_sach_sach[index]
                 break
             else:
-                print("[LỖI] Số thứ tự không hợp lệ. Vui lòng nhập lại!")
-                
+                print("[LỖI] Số thứ tự không hợp lệ!")
+
         else:
             if lua_chon in danh_sach_sach:
                 book_idx_selected = danh_sach_sach.index(lua_chon)
                 sach_nguoi_dung_chon = lua_chon
                 break
             else:
-                print("[LỖI] Tên sách không tồn tại trong hệ thống. Vui lòng nhập chính xác từng chữ hoa/thường!")
+                print("[LỖI] Tên sách không tồn tại!")
 
-    print(f"\n>>> Bạn đang đọc: [ {sach_nguoi_dung_chon} ]")
-    print(">>> Hệ thống đang phân tích không gian vector kNN...\n")
-    
-    ket_qua = KNN_Tim_Sach_Goi_Y(book_idx_selected, knn_model, df)
-    
-    print("\n>>> BFS đang mở rộng mạng lưới liên quan...\n")
+    print(f"\n>>> Bạn đang đọc: [{sach_nguoi_dung_chon}]")
 
-    bfs_result = BFS_Goi_Y(book_idx_selected, graph, df)
+    # ------------------------------
+    # KNN Recommendation
+    # ------------------------------
+    print("\n>>> KNN đang tìm các sách tương đồng...")
 
-    print("=> GỢI Ý MỞ RỘNG BẰNG BFS:")
+    ket_qua = KNN_Tim_Sach_Goi_Y(
+        book_idx_selected,
+        knn_model,
+        df
+    )
 
-    for i, sach in enumerate(bfs_result):
-        print(f"   {i + 1}. {sach}")
+    print("\n=> GỢI Ý TRỰC TIẾP BẰNG KNN:")
 
     if not ket_qua:
-        print("=> Rất tiếc, chưa tìm thấy sách nào đạt ngưỡng tương đồng với lựa chọn của bạn.")
+        print("   Không tìm thấy sách tương đồng.")
     else:
-        print("=> CÓ THỂ BẠN SẼ QUAN TÂM:")
         for i, sach in enumerate(ket_qua):
             print(f"   {i + 1}. {sach}")
-    print("="*50)
+
+    # ------------------------------
+    # BFS Recommendation
+    # ------------------------------
+    print("\n>>> BFS đang mở rộng mạng lưới liên quan...")
+
+    bfs_result = BFS_Goi_Y(
+        book_idx_selected,
+        graph,
+        df
+    )
+
+    # Loại bỏ các sách đã xuất hiện trong KNN
+    bfs_result = [
+        sach for sach in bfs_result
+        if sach not in ket_qua
+    ]
+
+    print("\n=> GỢI Ý MỞ RỘNG BẰNG BFS:")
+
+    if not bfs_result:
+        print("   Không có gợi ý mở rộng.")
+    else:
+        for i, sach in enumerate(bfs_result):
+            print(f"   {i + 1}. {sach}")
+
+    print("\n" + "=" * 50)
